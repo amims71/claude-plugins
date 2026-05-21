@@ -15,7 +15,7 @@ Same behavior at the end of a long session as at the start. That's the whole poi
 
 ## What it ships
 
-1. **`UserPromptSubmit` hook** (`hooks/prepend-comment-rule.sh`) that injects the literal one-liner `Remember the code commenting rule.` into every prompt Claude sees. Tiny per-turn token cost — roughly one short sentence.
+1. **`UserPromptSubmit` hook** (defined inline in `hooks/hooks.json` as a one-line `node -e` command) that injects the literal string `Remember the code commenting rule.` into every prompt Claude sees. Tiny per-turn token cost — roughly one short sentence. Cross-platform: no bash script, no shebang, no external CLI tools — just a Node command, and Node is already on every machine that runs Claude Code.
 2. **`comment-rule` skill** (`skills/comment-rule/SKILL.md`) containing the actual rule (when to comment, when not to). The skill's name + description are advertised in the system prompt at session start so Claude can discover it; the body is read on-demand. Skill discovery is **model-driven, not deterministic** — that's precisely why the hook exists. The hook guarantees the reminder fires every turn even when Claude wouldn't have consulted the skill on its own. Steady-state per-turn cost is just the hook's one-liner; the skill body is not re-injected every request.
 
 The hook reminds (every turn, guaranteed). The skill is the rule (loaded on-demand when the reminder lands). Shipping both in one plugin means neither is dangling.
@@ -54,13 +54,13 @@ After install, in any Claude Code session:
 /hooks
 ```
 
-You should see `UserPromptSubmit` listing the plugin's `prepend-comment-rule.sh` script.
+You should see a `UserPromptSubmit` entry whose command starts with `node -e ...`. That's this plugin's hook.
 
 Submit any prompt — Claude's first action will reflect the rule (no superfluous comments; redundant ones it encounters in its diff get removed).
 
 ## Requirements
 
-None beyond a POSIX `bash` (already present on every Claude Code seat — macOS, Linux, Windows via Git Bash / WSL). The hook is a single `printf` of a static JSON object; no `jq` or other external tool is invoked.
+**None.** The hook runs via `node -e`, and Node.js is already installed on every machine running Claude Code (Claude Code itself is a Node application). No bash, no `jq`, no shell-script execute bit, no Git Bash / WSL — works identically on macOS, Linux, and Windows.
 
 ## Files
 
@@ -69,8 +69,7 @@ plugins/comment-rule/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── hooks/
-│   ├── hooks.json                  # registers UserPromptSubmit
-│   └── prepend-comment-rule.sh     # emits the one-line reminder as JSON
+│   └── hooks.json                  # registers UserPromptSubmit; hook command embedded inline
 ├── skills/
 │   └── comment-rule/
 │       └── SKILL.md                # the rule itself (when to comment, when not to)
