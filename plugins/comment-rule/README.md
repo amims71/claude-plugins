@@ -16,9 +16,9 @@ Same behavior at the end of a long session as at the start. That's the whole poi
 ## What it ships
 
 1. **`UserPromptSubmit` hook** (`hooks/prepend-comment-rule.sh`) that injects the literal one-liner `Remember the code commenting rule.` into every prompt Claude sees. Tiny per-turn token cost — roughly one short sentence.
-2. **`comment-rule` skill** (`skills/comment-rule/SKILL.md`) containing the actual rule (when to comment, when not to). The skill's *name + description* are loaded once at session start; the body only loads when Claude is about to edit code. So the steady-state per-turn cost is just the hook's one-liner — the skill body is not re-injected every request.
+2. **`comment-rule` skill** (`skills/comment-rule/SKILL.md`) containing the actual rule (when to comment, when not to). The skill's name + description are advertised in the system prompt at session start so Claude can discover it; the body is read on-demand. Skill discovery is **model-driven, not deterministic** — that's precisely why the hook exists. The hook guarantees the reminder fires every turn even when Claude wouldn't have consulted the skill on its own. Steady-state per-turn cost is just the hook's one-liner; the skill body is not re-injected every request.
 
-The hook reminds. The skill is the rule. Shipping both in one plugin means the reminder is never dangling.
+The hook reminds (every turn, guaranteed). The skill is the rule (loaded on-demand when the reminder lands). Shipping both in one plugin means neither is dangling.
 
 ## Install
 
@@ -60,7 +60,7 @@ Submit any prompt — Claude's first action will reflect the rule (no superfluou
 
 ## Requirements
 
-- `jq` on the user's PATH (used by the hook). Standard on macOS/Linux dev boxes; install via `brew install jq` if missing.
+None beyond a POSIX `bash` (already present on every Claude Code seat — macOS, Linux, Windows via Git Bash / WSL). The hook is a single `printf` of a static JSON object; no `jq` or other external tool is invoked.
 
 ## Files
 
