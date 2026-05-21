@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "amim",
+  "description": "Amim's personal Claude Code plugins",
+  "owner": {
+    "name": "Amimul Ehshan",
+    "email": "amimul.ehshan@telaeris.com"
+  },
+  "plugins": [
+    {
+      "name": "comment-rule",
+      "description": "Ships a UserPromptSubmit hook that prepends 'Remember the code commenting rule.' to every prompt, plus a skill containing the rule itself (when to comment, when not to). Keeps Claude's commenting discipline consistent across long sessions and after context compactions, without per-seat settings.json edits.",
+      "source": "./plugins/comment-rule",
+      "category": "workflow"
+    }
+  ]
+}

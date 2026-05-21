@@ -1,0 +1,9 @@
+{
+  "name": "comment-rule",
+  "version": "0.1.0",
+  "description": "Keeps Claude's code-commenting discipline consistent across sessions. Ships a UserPromptSubmit hook that injects 'Remember the code commenting rule.' into every prompt, plus a skill containing the rule itself so the reminder always has something to reference.",
+  "author": {
+    "name": "Amimul Ehshan",
+    "email": "amimul.ehshan@telaeris.com"
+  }
+}
