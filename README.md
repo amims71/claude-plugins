@@ -17,6 +17,7 @@ Add this marketplace to your Claude Code once, then install any plugin from it. 
 | Plugin | Slash install | What it does |
 | --- | --- | --- |
 | [`comment-rule`](./plugins/comment-rule) | `/plugin install comment-rule@amim` | Keeps Claude's code-commenting discipline consistent across long sessions. Injects a one-line nudge into every prompt + ships a skill containing the actual rule. |
+| [`claude-ntfy`](./plugins/claude-ntfy) | `/plugin install claude-ntfy@amim` | Pushes Claude Code updates to your phone via ntfy — the turn-end message (PR link / decision / error), not a static "your turn". Auto-generates a private topic on first run with subscribe instructions. |
 
 ## Layout
 

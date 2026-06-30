@@ -12,6 +12,12 @@
       "description": "Ships a UserPromptSubmit hook that prepends 'Remember the code commenting rule.' to every prompt, plus a skill containing the rule itself (when to comment, when not to). Keeps Claude's commenting discipline consistent across long sessions and after context compactions, without per-seat settings.json edits.",
       "source": "./plugins/comment-rule",
       "category": "workflow"
+    },
+    {
+      "name": "claude-ntfy",
+      "description": "Push Claude Code completions to your phone via ntfy. The Stop hook sends what Claude actually said at turn-end (PR link / decision / error) instead of a static message; Notification events push permission/attention prompts. Auto-generates a private topic on first run with subscribe instructions. Cross-platform Node, no dependencies.",
+      "source": "./plugins/claude-ntfy",
+      "category": "workflow"
     }
   ]
 }
