@@ -2,6 +2,8 @@
 
 Personal [Claude Code](https://docs.claude.com/en/docs/claude-code) plugin marketplace.
 
+**Live site:** [amims71.github.io/claude-plugins](https://amims71.github.io/claude-plugins/)
+
 Add this marketplace to your Claude Code once, then install any plugin from it. The marketplace handle is **`amim`**.
 
 ## Add the marketplace

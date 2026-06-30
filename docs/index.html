@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>amim — Claude Code plugins</title>
+<meta name="description" content="A personal Claude Code plugin marketplace. Small plugins that hook into the session lifecycle and fire only when it matters — keep your diffs free of comment noise, and turn phone pushes into something worth reading.">
+<meta name="theme-color" content="#0b1513">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="mask-icon" href="favicon.svg" color="#f4b740">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="amim — Claude Code plugins">
+<meta property="og:description" content="A personal Claude Code marketplace. Plugins that hook into the session lifecycle and fire only when it matters.">
+<meta property="og:url" content="https://amims71.github.io/claude-plugins/">
+<meta name="twitter:card" content="summary">
+
+<style>
+  :root{
+    --ink:#0b1513;
+    --ink-2:#0d1917;
+    --panel:#10211e;
+    --panel-2:#13262207;
+    --raise:#13302b;
+    --line:#1d3a34;
+    --line-2:#2c544c;
+    --slate:#5d8b82;
+    --fg:#e9f1ed;
+    --muted:#9db3ab;
+    --faint:#6f8881;
+    --amber:#f4b740;
+    --amber-ink:#1a1304;
+    --amber-soft:rgba(244,183,64,.13);
+    --amber-line:rgba(244,183,64,.32);
+    --amber-glow:rgba(244,183,64,.45);
+
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji",sans-serif;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,"Cascadia Code","JetBrains Mono",Menlo,Consolas,monospace;
+
+    --wrap:1080px;
+    --pad:clamp(20px,5vw,40px);
+    --r:14px;
+    --r-sm:9px;
+  }
+
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--fg);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-2;
+    background:
+      radial-gradient(900px 520px at 78% -8%, rgba(244,183,64,.10), transparent 60%),
+      radial-gradient(760px 600px at 6% 4%, rgba(46,96,86,.30), transparent 58%),
+      radial-gradient(1200px 900px at 50% 120%, rgba(13,40,35,.6), transparent 60%);
+  }
+  body::after{
+    content:"";
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    background-image:
+      linear-gradient(rgba(93,139,130,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(93,139,130,.05) 1px, transparent 1px);
+    background-size:46px 46px;
+    -webkit-mask-image:radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 75%);
+    mask-image:radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 75%);
+  }
+
+  .wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:var(--pad)}
+  a{color:inherit}
+  ::selection{background:var(--amber-glow);color:var(--amber-ink)}
+  :focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:4px}
+
+  .mono{font-family:var(--mono)}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--slate);
+    display:inline-flex;
+    align-items:center;
+    gap:.6em;
+  }
+  .eyebrow::before{
+    content:"";
+    width:18px;height:1px;
+    background:var(--line-2);
+  }
+
+  /* nav */
+  .nav{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:saturate(140%) blur(10px);
+    -webkit-backdrop-filter:saturate(140%) blur(10px);
+    background:linear-gradient(var(--ink), rgba(11,21,19,.72));
+    border-bottom:1px solid var(--line);
+  }
+  .nav-in{display:flex;align-items:center;gap:18px;height:62px}
+  .brand{display:flex;align-items:center;gap:11px;text-decoration:none;margin-right:auto}
+  .brand svg{display:block;flex:none}
+  .brand b{font-family:var(--mono);font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .brand .tag{
+    font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:3px 8px;
+  }
+  .nav-links{display:flex;align-items:center;gap:4px}
+  .nav-links a{
+    font-family:var(--mono);font-size:13px;color:var(--muted);text-decoration:none;
+    padding:8px 11px;border-radius:8px;transition:color .15s, background .15s;
+  }
+  .nav-links a:hover{color:var(--fg);background:var(--amber-soft)}
+  .nav-links .gh{color:var(--fg)}
+  @media (max-width:680px){
+    .nav-links a[data-opt]{display:none}
+  }
+
+  /* hero */
+  .hero{padding:clamp(48px,8vw,96px) 0 clamp(36px,5vw,64px)}
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:clamp(34px,5vw,56px);align-items:center}
+  @media (min-width:920px){.hero-grid{grid-template-columns:minmax(0,1.02fr) minmax(0,1.1fr)}}
+
+  h1{
+    font-size:clamp(2.3rem,6vw,3.85rem);
+    line-height:1.04;
+    letter-spacing:-.025em;
+    font-weight:680;
+    margin:.5em 0 0;
+    text-wrap:balance;
+  }
+  h1 .fire{
+    color:var(--amber);
+    position:relative;
+    white-space:nowrap;
+  }
+  .lede{
+    color:var(--muted);
+    font-size:clamp(1.02rem,1.6vw,1.16rem);
+    max-width:34ch;
+    margin:1.1em 0 0;
+  }
+  .lede code{
+    font-family:var(--mono);font-size:.92em;color:var(--fg);
+    background:var(--amber-soft);border:1px solid var(--amber-line);
+    border-radius:6px;padding:.08em .4em;
+  }
+  .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:var(--mono);font-size:13.5px;font-weight:500;
+    text-decoration:none;cursor:pointer;
+    border-radius:10px;padding:12px 16px;
+    border:1px solid var(--line-2);
+    background:var(--panel);color:var(--fg);
+    transition:transform .12s, border-color .15s, background .15s, box-shadow .2s;
+  }
+  .btn:hover{transform:translateY(-1px);border-color:var(--slate)}
+  .btn-primary{
+    background:var(--amber);color:var(--amber-ink);border-color:var(--amber);
+    box-shadow:0 8px 30px -12px var(--amber-glow);
+  }
+  .btn-primary:hover{box-shadow:0 12px 36px -10px var(--amber-glow);border-color:var(--amber)}
+  .btn .ic{width:15px;height:15px;flex:none}
+  .btn.copied{border-color:var(--amber);color:var(--amber)}
+  .btn-primary.copied{background:var(--amber);color:var(--amber-ink)}
+
+  .facts{
+    display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:34px;
+    font-family:var(--mono);font-size:12.5px;color:var(--faint);
+  }
+  .facts b{color:var(--fg);font-weight:600}
+  .facts span{display:inline-flex;align-items:center;gap:8px}
+  .facts span::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--amber);box-shadow:0 0 8px var(--amber-glow)}
+
+  /* terminal */
+  .term{
+    border:1px solid var(--line-2);
+    border-radius:var(--r);
+    background:linear-gradient(180deg,#0e201d,#0b1715);
+    box-shadow:0 40px 80px -40px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.03);
+    overflow:hidden;
+  }
+  .term-bar{
+    display:flex;align-items:center;gap:8px;
+    padding:11px 14px;border-bottom:1px solid var(--line);
+    background:rgba(255,255,255,.015);
+  }
+  .term-bar i{width:11px;height:11px;border-radius:50%;display:block;border:1px solid rgba(0,0,0,.25)}
+  .d1{background:#3a5a52}.d2{background:#4a6a60}.d3{background:var(--amber);box-shadow:0 0 9px var(--amber-glow)}
+  .term-bar span{
+    margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--faint);
+    letter-spacing:.02em;
+  }
+  .term-body{
+    font-family:var(--mono);font-size:13.5px;line-height:1.75;
+    padding:18px 18px 22px;
+    min-height:236px;
+    overflow-x:auto;
+  }
+  .tl{margin:0;white-space:pre;color:var(--muted)}
+  .tl .pr{color:var(--amber);font-weight:600}
+  .tl.cmd{color:var(--fg)}
+  .tl.out{color:var(--slate)}
+  .tl.out .gl{color:var(--amber)}
+  .tl.out.dim{color:var(--faint)}
+  .tl.out.dim .gl{color:var(--slate)}
+  .tl .lk{color:var(--fg);text-decoration:underline;text-decoration-color:var(--line-2);text-underline-offset:3px}
+  .cursor{
+    display:inline-block;width:8px;height:1.05em;vertical-align:-2px;margin-left:1px;
+    background:var(--amber);box-shadow:0 0 8px var(--amber-glow);
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .cursor.blink{animation:blink 1.05s step-end infinite}
+  }
+  @keyframes blink{50%{opacity:0}}
+  .tl.pending{visibility:hidden}
+
+  /* section scaffold */
+  section{padding:clamp(54px,8vw,92px) 0;position:relative}
+  .sec-head{max-width:62ch}
+  h2{
+    font-size:clamp(1.7rem,3.4vw,2.4rem);
+    line-height:1.1;letter-spacing:-.02em;font-weight:660;
+    margin:.45em 0 0;text-wrap:balance;
+  }
+  .sec-head p{color:var(--muted);margin:.85em 0 0;max-width:58ch}
+  .divider{height:1px;background:linear-gradient(90deg,var(--line),transparent);border:0;margin:0}
+
+  /* lifecycle wire */
+  .wire{position:relative;margin-top:clamp(34px,5vw,52px);padding-left:6px}
+  .wire-rail{position:relative;padding-left:46px}
+  .wire-rail::before{
+    content:"";position:absolute;left:13px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(180deg,transparent,var(--line-2) 8%,var(--line-2) 92%,transparent);
+    border-radius:2px;
+  }
+  .comet{
+    position:absolute;left:9px;width:10px;height:10px;border-radius:50%;
+    background:var(--amber);box-shadow:0 0 14px 3px var(--amber-glow);
+    top:0;opacity:0;pointer-events:none;
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .comet{animation:sweep 5.2s cubic-bezier(.5,0,.5,1) infinite}
+  }
+  @keyframes sweep{
+    0%{top:0;opacity:0}
+    6%{opacity:1}
+    94%{opacity:1}
+    100%{top:100%;opacity:0}
+  }
+  .ev{position:relative;padding:18px 0}
+  .ev + .ev{border-top:1px solid var(--line)}
+  .ev .node{
+    position:absolute;left:-38px;top:22px;width:14px;height:14px;border-radius:50%;
+    background:var(--ink);border:2px solid var(--slate);
+  }
+  .ev.fires .node{border-color:var(--amber);box-shadow:0 0 0 4px var(--amber-soft)}
+  .ev-name{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--fg);letter-spacing:-.01em}
+  .ev-name em{color:var(--faint);font-style:normal;font-weight:400;margin-left:.5em;font-size:12.5px}
+  .ev-desc{color:var(--muted);margin:.35em 0 0;max-width:60ch;font-size:15.5px}
+  .ev-by{margin-top:.7em}
+  .by{
+    display:inline-flex;align-items:center;gap:7px;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.02em;
+    color:var(--amber);background:var(--amber-soft);border:1px solid var(--amber-line);
+    padding:4px 9px;border-radius:999px;text-decoration:none;
+  }
+  .by::before{content:"⤿";font-size:13px;line-height:1;color:var(--amber)}
+  .by.idle{color:var(--faint);background:transparent;border-color:var(--line)}
+  .by.idle::before{content:"·";color:var(--faint)}
+
+  /* plugins */
+  .cards{display:grid;grid-template-columns:1fr;gap:20px;margin-top:clamp(30px,4vw,44px)}
+  @media (min-width:780px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .card{
+    display:flex;flex-direction:column;min-width:0;
+    border:1px solid var(--line);border-radius:var(--r);
+    background:linear-gradient(180deg,rgba(255,255,255,.018),transparent),var(--panel);
+    padding:24px 22px 22px;position:relative;overflow:hidden;
+    transition:border-color .2s, transform .2s;
+  }
+  .card::before{
+    content:"";position:absolute;inset:0 0 auto 0;height:2px;
+    background:linear-gradient(90deg,var(--amber),transparent 70%);
+    opacity:.55;
+  }
+  .card:hover{border-color:var(--line-2);transform:translateY(-2px)}
+  .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+  .card h3{font-family:var(--mono);font-size:1.18rem;font-weight:600;margin:0;letter-spacing:-.01em}
+  .card h3 .at{color:var(--slate)}
+  .ver{
+    font-family:var(--mono);font-size:11px;color:var(--faint);
+    border:1px solid var(--line);border-radius:999px;padding:3px 9px;white-space:nowrap;flex:none;
+  }
+  .card .tagline{color:var(--fg);font-weight:560;margin:.85em 0 0;font-size:1.02rem}
+  .card .body{color:var(--muted);margin:.5em 0 0;font-size:15.5px}
+  .hooks{display:flex;flex-wrap:wrap;gap:7px;margin:16px 0 0}
+  .hook{
+    font-family:var(--mono);font-size:11.5px;color:var(--slate);
+    border:1px solid var(--line);border-radius:7px;padding:4px 8px;background:var(--ink-2);
+  }
+  .channels{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0 0}
+  .ch-label{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-right:2px}
+  .ch{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;border-radius:999px;padding:4px 10px;border:1px solid var(--line)}
+  .ch i{width:6px;height:6px;border-radius:50%;flex:none}
+  .ch em{font-style:normal;font-size:10px;letter-spacing:.04em}
+  .ch.live{border-color:var(--amber-line);color:var(--fg);background:var(--amber-soft)}
+  .ch.live i{background:var(--amber);box-shadow:0 0 7px var(--amber-glow)}
+  .ch.live em{color:var(--amber)}
+  .ch.soon{color:var(--muted);border-style:dashed}
+  .ch.soon i{border:1px solid var(--slate)}
+  .ch.soon em{color:var(--faint)}
+  .card .grow{flex:1}
+  .cmd{
+    display:flex;align-items:center;gap:10px;margin-top:18px;min-width:0;
+    border:1px solid var(--line-2);border-radius:10px;background:var(--ink-2);
+    padding:10px 10px 10px 13px;
+  }
+  .cmd code{
+    font-family:var(--mono);font-size:12.7px;color:var(--fg);
+    overflow-x:auto;white-space:nowrap;flex:1;min-width:0;scrollbar-width:none;
+  }
+  .cmd code::-webkit-scrollbar{display:none}
+  .cmd code .pr{color:var(--amber)}
+  .copy{
+    flex:none;cursor:pointer;border:1px solid var(--line-2);background:var(--panel);
+    color:var(--muted);border-radius:7px;width:34px;height:32px;
+    display:inline-grid;place-items:center;transition:color .15s,border-color .15s,background .15s;
+  }
+  .copy:hover{color:var(--fg);border-color:var(--slate)}
+  .copy.copied{color:var(--amber);border-color:var(--amber)}
+  .copy svg{width:15px;height:15px}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px}
+  .chip{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--faint);
+  }
+  .docs{
+    font-family:var(--mono);font-size:12.5px;color:var(--amber);text-decoration:none;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .docs:hover{text-decoration:underline;text-underline-offset:3px}
+
+  /* steps */
+  .steps{display:grid;grid-template-columns:1fr;gap:14px;margin-top:clamp(30px,4vw,44px);counter-reset:s}
+  @media (min-width:780px){.steps{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  .step{
+    display:flex;flex-direction:column;min-width:0;
+    border:1px solid var(--line);border-radius:var(--r);background:var(--panel);
+    padding:22px 20px;position:relative;
+  }
+  .step::before{
+    counter-increment:s;content:"0" counter(s);
+    font-family:var(--mono);font-size:12px;color:var(--amber);
+    letter-spacing:.1em;
+  }
+  .step h4{margin:.7em 0 0;font-size:1.06rem;font-weight:620;letter-spacing:-.01em}
+  .step p{color:var(--muted);margin:.5em 0 18px;font-size:15px}
+  .step .cmd{margin-top:auto;align-items:flex-start}
+  .step .cmd .pr{margin-top:1px}
+  .step .cmd code{white-space:normal;overflow-wrap:anywhere;overflow-x:visible}
+  .steps-note{font-family:var(--mono);font-size:13px;color:var(--faint);margin:18px 0 0}
+  .steps-note code{font-family:var(--mono);color:var(--amber)}
+
+  /* extend */
+  .extend-grid{display:grid;grid-template-columns:1fr;gap:clamp(24px,4vw,40px);margin-top:clamp(28px,4vw,40px);align-items:start}
+  @media (min-width:860px){.extend-grid{grid-template-columns:.9fr 1.1fr}}
+  .codeblock{
+    border:1px solid var(--line-2);border-radius:var(--r);background:var(--ink-2);
+    overflow:hidden;
+  }
+  .codeblock .cb-bar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 12px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:11.5px;color:var(--faint);
+  }
+  .codeblock pre{margin:0;padding:16px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.7px;line-height:1.7}
+  .codeblock .k{color:var(--amber)}
+  .codeblock .s{color:#bfe0c7}
+  .codeblock .c{color:var(--faint)}
+  .mini{list-style:none;margin:18px 0 0;padding:0;counter-reset:m;display:grid;gap:13px}
+  .mini li{position:relative;padding-left:34px;color:var(--muted);font-size:15.5px}
+  .mini li::before{
+    counter-increment:m;content:counter(m);
+    position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;
+    border:1px solid var(--line-2);color:var(--amber);
+    font-family:var(--mono);font-size:11.5px;display:grid;place-items:center;
+  }
+  .mini code{font-family:var(--mono);font-size:.9em;color:var(--fg);background:var(--ink);border:1px solid var(--line);border-radius:5px;padding:.05em .35em}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding:46px 0 60px;margin-top:clamp(40px,6vw,80px)}
+  .foot-in{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center}
+  .foot-in .brand{margin-right:auto}
+  .foot-meta{font-family:var(--mono);font-size:12.5px;color:var(--faint);display:flex;flex-wrap:wrap;gap:8px 18px}
+  .foot-meta a{color:var(--muted);text-decoration:none}
+  .foot-meta a:hover{color:var(--amber)}
+
+  /* reveal (only when motion allowed; default fully visible) */
+  html.anim .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1)}
+  html.anim .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a class="brand" href="#top" aria-label="amim — Claude Code plugins">
+      <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+        <line x1="12" y1="6" x2="12" y2="26" stroke="#2c544c" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="8.5" r="2.3" fill="#0b1513" stroke="#5d8b82" stroke-width="1.6"/>
+        <circle cx="12" cy="16" r="3" fill="#f4b740"/>
+        <circle cx="12" cy="23.5" r="2.3" fill="#0b1513" stroke="#5d8b82" stroke-width="1.6"/>
+      </svg>
+      <b>amim</b>
+      <span class="tag">marketplace</span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a data-opt href="#plugins">Plugins</a>
+      <a data-opt href="#lifecycle">Lifecycle</a>
+      <a data-opt href="#install">Install</a>
+      <a class="gh" href="https://github.com/amims71/claude-plugins" target="_blank" rel="noopener">GitHub&nbsp;↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <span class="eyebrow">amim · claude code plugins</span>
+        <h1>Plugins that fire at the <span class="fire">right moment</span>.</h1>
+        <p class="lede">A personal Claude&nbsp;Code marketplace. Two plugins so far — each one a hook on the session lifecycle that does its job and stays quiet otherwise. Add it once with <code>@amim</code>.</p>
+        <div class="cta">
+          <button class="btn btn-primary" data-copy="/plugin marketplace add amims71/claude-plugins" aria-label="Copy: add the amim marketplace">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span class="lbl">/plugin marketplace add amim</span>
+          </button>
+          <a class="btn" href="#plugins">Browse plugins</a>
+        </div>
+        <div class="facts">
+          <span><b>2</b>&nbsp;plugins</span>
+          <span><b>0</b>&nbsp;dependencies</span>
+          <span>Node-only, cross-platform</span>
+          <span>MIT</span>
+        </div>
+      </div>
+
+      <div class="term reveal" role="img" aria-label="Terminal: adding the amim marketplace and installing both plugins.">
+        <div class="term-bar">
+          <i class="d1"></i><i class="d2"></i><i class="d3"></i>
+          <span>claude code — ~/your-project</span>
+        </div>
+        <div class="term-body" id="term">
+          <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin marketplace add amims71/claude-plugins</span></p>
+          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">added marketplace ‘amim’ — 2 plugins available</span></p>
+          <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin install comment-rule@amim</span></p>
+          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">comment-rule 0.1.0 — UserPromptSubmit hook registered</span></p>
+          <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin install claude-ntfy@amim</span></p>
+          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">claude-ntfy 0.1.2 — Stop · Notification · SessionStart</span></p>
+          <p class="tl out dim"><span class="gl">◦</span> <span class="ln">minted a private ntfy topic — subscribe on your phone ↗</span></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="lifecycle">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">the session wire</span>
+        <h2>One Claude Code session. Four events. Two plugins listening.</h2>
+        <p>Every session is a stream of lifecycle events. A plugin is just a hook clamped onto one of them — it wakes when its event fires, does one thing, and goes quiet. Here’s the wire, and where each plugin taps in.</p>
+      </div>
+
+      <div class="wire reveal">
+        <div class="wire-rail">
+          <span class="comet" aria-hidden="true"></span>
+
+          <div class="ev fires">
+            <span class="node"></span>
+            <div class="ev-name">SessionStart <em>— a session begins</em></div>
+            <p class="ev-desc">First run only: claude-ntfy mints your private push topic and prints one-time subscribe steps. Silent on every session after.</p>
+            <div class="ev-by"><a class="by" href="#plugins">claude-ntfy</a></div>
+          </div>
+
+          <div class="ev fires">
+            <span class="node"></span>
+            <div class="ev-name">UserPromptSubmit <em>— you hit enter, every turn</em></div>
+            <p class="ev-desc">comment-rule re-injects one line — <span class="mono">Remember the code commenting rule.</span> — so the discipline survives turn 500 and post-compaction, not just turn 1.</p>
+            <div class="ev-by"><a class="by" href="#plugins">comment-rule</a></div>
+          </div>
+
+          <div class="ev">
+            <span class="node"></span>
+            <div class="ev-name">Stop <em>— the turn ends</em></div>
+            <p class="ev-desc">claude-ntfy pushes what Claude actually said — PR link, decision, or error. The title adapts: a question becomes “needs you”, an error becomes “error”, links stay tappable.</p>
+            <div class="ev-by"><a class="by" href="#plugins">claude-ntfy</a></div>
+          </div>
+
+          <div class="ev fires">
+            <span class="node"></span>
+            <div class="ev-name">Notification <em>— Claude needs you</em></div>
+            <p class="ev-desc">Permission prompts and “needs attention” messages land on your channel at high priority, so a waiting agent never strands you.</p>
+            <div class="ev-by"><a class="by" href="#plugins">claude-ntfy</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="plugins">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">the catalog</span>
+        <h2>Two small plugins, no ceremony.</h2>
+        <p>Both are pure Node — no <span class="mono">npm install</span>, no <span class="mono">jq</span>, no bash, no execute bits. They run identically on macOS, Linux, and Windows, and uninstall without leaving anything behind in your settings.</p>
+      </div>
+
+      <div class="cards">
+        <article class="card reveal">
+          <div class="card-top">
+            <h3>comment-rule<span class="at"> @amim</span></h3>
+            <span class="ver">v0.1.0</span>
+          </div>
+          <p class="tagline">Keeps your diffs free of comment noise — turn after turn.</p>
+          <p class="body">Put the commenting rule in CLAUDE.md and Claude honors it at turn 1, then drifts as the rule slides out of context. This plugin re-injects a one-line nudge on <em>every</em> prompt, pointing at a skill that holds the real rule. Same clean output at turn 500 as at turn 1.</p>
+          <div class="hooks">
+            <span class="hook">UserPromptSubmit</span>
+            <span class="hook">+ skill</span>
+          </div>
+          <div class="grow"></div>
+          <div class="cmd">
+            <code><span class="pr">$</span> /plugin install comment-rule@amim</code>
+            <button class="copy" data-copy="/plugin install comment-rule@amim" aria-label="Copy install command for comment-rule">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <div class="card-foot">
+            <span class="chip">workflow</span>
+            <a class="docs" href="https://github.com/amims71/claude-plugins/tree/main/plugins/comment-rule" target="_blank" rel="noopener">Read the docs ↗</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <div class="card-top">
+            <h3>claude-ntfy<span class="at"> @amim</span></h3>
+            <span class="ver">v0.1.2</span>
+          </div>
+          <p class="tagline">Notifications worth reading — on your channel.</p>
+          <p class="body">Not a static “your turn.” It sends Claude’s real closing message — de-markdowned, with the PR link or the question it’s waiting on. Titles and priority adapt to questions and errors. ntfy ships today (a private, unguessable topic, minted on first run); more channels are on the way.</p>
+          <div class="channels">
+            <span class="ch-label">channels</span>
+            <span class="ch live"><i></i>ntfy<em>live</em></span>
+            <span class="ch soon"><i></i>Slack<em>planned</em></span>
+            <span class="ch soon"><i></i>Teams<em>planned</em></span>
+            <span class="ch soon"><i></i>webhook<em>planned</em></span>
+          </div>
+          <div class="grow"></div>
+          <div class="cmd">
+            <code><span class="pr">$</span> /plugin install claude-ntfy@amim</code>
+            <button class="copy" data-copy="/plugin install claude-ntfy@amim" aria-label="Copy install command for claude-ntfy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <div class="card-foot">
+            <span class="chip">workflow</span>
+            <a class="docs" href="https://github.com/amims71/claude-plugins/tree/main/plugins/claude-ntfy" target="_blank" rel="noopener">Read the docs ↗</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="install">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">install</span>
+        <h2>Add the marketplace once. Install anything from it.</h2>
+        <p>No token needed for public plugins — <span class="mono">gh</span> auth or a public-repo clone is enough. Hooks register automatically; there’s no <span class="mono">settings.json</span> to edit.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step reveal">
+          <h4>Add the marketplace</h4>
+          <p>Register the <span class="mono">amim</span> handle in your Claude Code. One time, per machine.</p>
+          <div class="cmd">
+            <code><span class="pr">$</span> /plugin marketplace add amims71/claude-plugins</code>
+            <button class="copy" data-copy="/plugin marketplace add amims71/claude-plugins" aria-label="Copy: add the marketplace">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="step reveal">
+          <h4>Install a plugin</h4>
+          <p>Pull in either plugin by name, scoped to the <span class="mono">@amim</span> handle.</p>
+          <div class="cmd">
+            <code><span class="pr">$</span> /plugin install claude-ntfy@amim</code>
+            <button class="copy" data-copy="/plugin install claude-ntfy@amim" aria-label="Copy: install claude-ntfy">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="step reveal">
+          <h4>That’s it — it’s wired</h4>
+          <p>The hooks register themselves. Confirm anytime with the hooks viewer.</p>
+          <div class="cmd">
+            <code><span class="pr">$</span> /hooks</code>
+            <button class="copy" data-copy="/hooks" aria-label="Copy: open the hooks viewer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      <p class="steps-note">Pull updates later: <code>/plugin marketplace update amim</code></p>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <section id="extend">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <span class="eyebrow">extend</span>
+        <h2>Bring your own.</h2>
+        <p>The marketplace is just a repo. Drop a plugin folder in, append one entry to the registry, push — users re-sync with a single command.</p>
+      </div>
+
+      <div class="extend-grid">
+        <ol class="mini reveal">
+          <li>Create <code>plugins/&lt;name&gt;/</code> with a <code>.claude-plugin/plugin.json</code> manifest.</li>
+          <li>Add the <code>hooks/</code>, <code>skills/</code>, <code>commands/</code>, or <code>agents/</code> it needs.</li>
+          <li>Append an entry to <code>.claude-plugin/marketplace.json</code>.</li>
+          <li>Bump the version, commit, push. Done.</li>
+        </ol>
+
+        <div class="codeblock reveal">
+          <div class="cb-bar"><span>.claude-plugin/marketplace.json</span><span>registry entry</span></div>
+<pre>{
+  <span class="k">"name"</span>: <span class="s">"your-plugin"</span>,
+  <span class="k">"description"</span>: <span class="s">"What it does, in one breath."</span>,
+  <span class="k">"source"</span>: <span class="s">"./plugins/your-plugin"</span>,
+  <span class="k">"category"</span>: <span class="s">"workflow"</span>
+}
+<span class="c">// users: /plugin marketplace update amim</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-in">
+    <a class="brand" href="#top" aria-label="amim marketplace">
+      <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true">
+        <line x1="12" y1="6" x2="12" y2="26" stroke="#2c544c" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="12" cy="8.5" r="2.3" fill="#0b1513" stroke="#5d8b82" stroke-width="1.6"/>
+        <circle cx="12" cy="16" r="3" fill="#f4b740"/>
+        <circle cx="12" cy="23.5" r="2.3" fill="#0b1513" stroke="#5d8b82" stroke-width="1.6"/>
+      </svg>
+      <b>amim</b>
+    </a>
+    <div class="foot-meta">
+      <span>Built by Amimul&nbsp;Ehshan</span>
+      <a href="https://github.com/amims71/claude-plugins" target="_blank" rel="noopener">github.com/amims71/claude-plugins</a>
+      <span>MIT</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var motionOK = !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // copy-to-clipboard
+  function flash(el){
+    var lbl = el.querySelector(".lbl");
+    var prev = lbl ? lbl.textContent : null;
+    el.classList.add("copied");
+    if(lbl) lbl.textContent = "copied ✓";
+    window.setTimeout(function(){
+      el.classList.remove("copied");
+      if(lbl) lbl.textContent = prev;
+    }, 1400);
+  }
+  function copyText(text, el){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){flash(el);}, function(){fallback(text,el);});
+    } else { fallback(text, el); }
+  }
+  function fallback(text, el){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); flash(el); }catch(e){}
+    document.body.removeChild(ta);
+  }
+  document.querySelectorAll("[data-copy]").forEach(function(el){
+    el.addEventListener("click", function(){ copyText(el.getAttribute("data-copy"), el); });
+  });
+
+  // scroll reveal
+  if(motionOK && "IntersectionObserver" in window){
+    document.documentElement.classList.add("anim");
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, {rootMargin:"0px 0px -8% 0px", threshold:0.08});
+    document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+  }
+
+  // terminal typing — reads existing line text, retypes it
+  var term = document.getElementById("term");
+  if(term && motionOK){
+    var lines = Array.prototype.map.call(term.querySelectorAll(".tl"), function(p){
+      var ln = p.querySelector(".ln");
+      return { row:p, ln:ln, text: ln.textContent };
+    });
+    lines.forEach(function(d){ d.ln.textContent=""; d.row.classList.add("pending"); });
+    var cursor = document.createElement("span");
+    cursor.className = "cursor blink";
+
+    function typeRow(i){
+      if(i >= lines.length){ return; }
+      var d = lines[i];
+      d.row.classList.remove("pending");
+      var isCmd = d.row.classList.contains("cmd");
+      d.ln.appendChild(cursor);
+      var c = 0;
+      var speed = isCmd ? 26 : 11;
+      (function tick(){
+        if(c < d.text.length){
+          cursor.insertAdjacentText("beforebegin", d.text.charAt(c));
+          c++;
+          window.setTimeout(tick, speed);
+        } else {
+          if(d.ln.contains(cursor)) d.ln.removeChild(cursor);
+          window.setTimeout(function(){ typeRow(i+1); }, isCmd ? 230 : 360);
+        }
+      })();
+    }
+    window.setTimeout(function(){ typeRow(0); }, 520);
+  }
+})();
+</script>
+</body>
+</html>
