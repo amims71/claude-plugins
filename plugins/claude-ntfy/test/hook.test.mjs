@@ -29,6 +29,16 @@ test('Stop hook + NOTIFY_DRY_RUN → prints resolved provider (slack)', () => {
   assert.match(r.stderr, /Opened PR #9/);
 });
 
+test('SessionStart with unknown provider emits a hint even if ntfy is configured', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'ntfy-'));
+  const r = runHook(
+    { hook_event_name: 'SessionStart' },
+    { CLAUDE_NOTIFY_PROVIDER: 'bogus', NTFY_TOPIC: 'claude-existing', CLAUDE_NTFY_CONFIG_FILE: join(dir, 'cfg.json') },
+  );
+  assert.equal(r.status, 0);
+  assert.match(r.stdout, /unknown provider|claude-ntfy setup/);
+});
+
 test('Stop hook with unconfigured provider → no-op, exit 0, no output', () => {
   const dir = mkdtempSync(join(tmpdir(), 'ntfy-'));
   const transcript = join(dir, 't.jsonl');

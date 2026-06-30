@@ -28,7 +28,11 @@ async function onSessionStart() {
   const env = process.env;
   const cfg = loadConfig();
   const providerId = resolveProviderId(cfg, env);
-  const provider = providers[providerId] || providers.ntfy;
+  const provider = providers[providerId];
+  if (!provider) {
+    emit({ systemMessage: `claude-ntfy: unknown provider "${providerId}". Run /claude-ntfy setup to configure a channel.` });
+    return;
+  }
   if (provider.fromConfig(cfg, env)) return; // already configured → silent
   if (providerId === 'ntfy') return mintNtfy(env);
   emit({ systemMessage: `claude-ntfy: provider "${providerId}" is selected but not configured yet. Run /claude-ntfy setup to add its webhook.` });
@@ -38,10 +42,12 @@ async function mintNtfy(env) {
   const topic = 'claude-' + randomUUID();
   const server = DEFAULT_SERVER;
   try { setKeys({ provider: 'ntfy', 'ntfy.topic': topic, 'ntfy.server': server }); } catch { return; }
-  await providers.ntfy.send(
-    providers.ntfy.render({ title: TITLE_PREFIX, body: 'claude-ntfy connected — Claude Code updates will arrive here.', kind: KIND.COMPLETION }),
-    { topic, server },
-  );
+  try {
+    await providers.ntfy.send(
+      providers.ntfy.render({ title: TITLE_PREFIX, body: 'claude-ntfy connected — Claude Code updates will arrive here.', kind: KIND.COMPLETION }),
+      { topic, server },
+    );
+  } catch {}
   emit({
     systemMessage: subscribeInstructions(topic, server),
     hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: 'claude-ntfy minted a new ntfy topic and showed the user one-time subscribe instructions.' },
