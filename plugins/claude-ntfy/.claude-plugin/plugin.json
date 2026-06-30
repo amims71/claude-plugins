@@ -1,7 +1,7 @@
 {
   "name": "claude-ntfy",
-  "version": "0.1.2",
-  "description": "Push Claude Code completions to your phone via ntfy. The Stop hook sends what Claude actually said at turn-end (PR link / decision / error) instead of a static message; Notification events push permission/attention prompts. Auto-generates a private topic on first run and shows subscribe instructions. Cross-platform Node, no dependencies.",
+  "version": "0.2.0",
+  "description": "Push Claude Code completions to your phone or chat. The Stop hook sends what Claude actually said at turn-end (PR link / decision / error); Notification events push permission/attention prompts. Choose a channel — ntfy (default, auto-mints a private topic), Slack, Discord, or any webhook — via /claude-ntfy setup. Cross-platform Node, no dependencies.",
   "author": {
     "name": "Amimul Ehshan",
     "email": "amimul.ehshan@telaeris.com"
