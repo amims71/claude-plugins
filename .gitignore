@@ -1,3 +1,6 @@
 # Local-only design docs — kept out of the repo
 specs/
 plans/
+
+# Subagent-driven-development scratch (briefs, diffs, progress ledger)
+.superpowers/
