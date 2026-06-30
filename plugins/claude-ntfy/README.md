@@ -27,6 +27,15 @@ Run `/claude-ntfy setup` and follow the prompts, or configure manually:
 Active channel resolves as: `CLAUDE_NOTIFY_PROVIDER` env → `provider` in config.json → ntfy.
 `NOTIFY_DRY_RUN=1` prints the payload instead of sending. All `NTFY_*` vars still work.
 
+### ntfy environment variables (optional)
+
+| Var | Default | Purpose |
+| --- | --- | --- |
+| `NTFY_TOPIC` | _auto-minted_ | Use a specific ntfy topic instead of the auto-generated one. |
+| `NTFY_SERVER` | `https://ntfy.sh` | Point at a self-hosted ntfy server. |
+| `NTFY_TITLE_PREFIX` | `Claude Code` | Leading text in every notification title. |
+| `NOTIFY_DRY_RUN` | _(off)_ | Print the payload to stderr instead of sending — for local testing (`NTFY_DRY_RUN` is still honored). |
+
 ## Install
 
 ```

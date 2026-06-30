@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
 import * as ntfy from '../bin/providers/ntfy.mjs';
 import { deliver } from '../bin/providers/index.mjs';
 import { KIND } from '../bin/lib/message.mjs';
@@ -56,4 +57,18 @@ test('deliver: ntfy with valid config and dry-run returns true', async () => {
     message: { title: 'T', body: 'B', kind: 'completion', project: 'p' },
   });
   assert.deepEqual(result, { delivered: true, dryRun: true, id: 'ntfy' });
+});
+
+test('ntfy.send round-trips a UTF-8 title (·/accents) through the latin1 Title header', async () => {
+  const title = 'Claude Code · café';
+  const received = await new Promise((resolve, reject) => {
+    const server = http.createServer((req, res) => { res.end('ok'); server.close(); resolve(req.headers.title); });
+    server.listen(0, '127.0.0.1', async () => {
+      const url = `http://127.0.0.1:${server.address().port}`;
+      try { await ntfy.send({ title, body: 'b', priority: 'default', tags: 'bell' }, { topic: 't', server: url }); }
+      catch (err) { server.close(); reject(err); }
+    });
+  });
+  // Node emits header values as latin1 bytes; decoding back as UTF-8 must reproduce the original title.
+  assert.equal(Buffer.from(received, 'latin1').toString('utf8'), title);
 });

@@ -31,7 +31,9 @@ export function send(payload, cfg) {
   return post(url, { headers, body: payload.body || '' });
 }
 
-// ntfy Title is an HTTP header — strip newlines and anything outside printable latin1.
+// ntfy Title is an HTTP header — strip newlines and re-encode UTF-8 as latin1 so the
+// correct bytes go on the wire (ntfy decodes the header as UTF-8).
 function headerSafe(s) {
-  return String(s).replace(/[\r\n]+/g, ' ').replace(/[^\x20-\xFF]/g, '').trim() || (process.env.NTFY_TITLE_PREFIX || 'Claude Code');
+  const t = String(s).replace(/[\r\n]+/g, ' ').trim() || (process.env.NTFY_TITLE_PREFIX || 'Claude Code');
+  return Buffer.from(t, 'utf8').toString('latin1');
 }
