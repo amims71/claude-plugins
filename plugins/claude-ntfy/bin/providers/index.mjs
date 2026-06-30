@@ -1,6 +1,8 @@
 import * as ntfy from './ntfy.mjs';
+import * as slack from './slack.mjs';
+import * as discord from './discord.mjs';
 
-export const providers = { ntfy };
+export const providers = { ntfy, slack, discord };
 
 function redact(cfg) {
   const r = { ...cfg };
