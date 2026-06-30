@@ -1,6 +1,6 @@
 {
   "name": "claude-ntfy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Push Claude Code completions to your phone via ntfy. The Stop hook sends what Claude actually said at turn-end (PR link / decision / error) instead of a static message; Notification events push permission/attention prompts. Auto-generates a private topic on first run and shows subscribe instructions. Cross-platform Node, no dependencies.",
   "author": {
     "name": "Amimul Ehshan",
