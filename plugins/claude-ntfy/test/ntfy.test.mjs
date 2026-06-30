@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as ntfy from '../bin/providers/ntfy.mjs';
+import { deliver } from '../bin/providers/index.mjs';
 import { KIND } from '../bin/lib/message.mjs';
 
 test('ntfy.render: kind → tags + priority', () => {
@@ -25,4 +26,34 @@ test('ntfy.fromConfig: default server when omitted', () => {
 test('ntfy.fromConfig: nothing → null', () => {
   assert.equal(ntfy.fromConfig({}, {}), null);
   assert.equal(ntfy.fromConfig(null, {}), null);
+});
+
+test('deliver: unknown providerId returns unknown-provider', async () => {
+  const result = await deliver({
+    providerId: 'bogus',
+    cfg: {},
+    env: {},
+    message: { title: 'T', body: 'B', kind: 'completion', project: 'p' },
+  });
+  assert.deepEqual(result, { delivered: false, reason: 'unknown-provider', id: 'bogus' });
+});
+
+test('deliver: ntfy with no config returns unconfigured', async () => {
+  const result = await deliver({
+    providerId: 'ntfy',
+    cfg: {},
+    env: {},
+    message: { title: 'T', body: 'B', kind: 'completion', project: 'p' },
+  });
+  assert.deepEqual(result, { delivered: false, reason: 'unconfigured', id: 'ntfy' });
+});
+
+test('deliver: ntfy with valid config and dry-run returns true', async () => {
+  const result = await deliver({
+    providerId: 'ntfy',
+    cfg: { ntfy: { topic: 't', server: 'https://s' } },
+    env: { NOTIFY_DRY_RUN: '1' },
+    message: { title: 'T', body: 'B', kind: 'completion', project: 'p' },
+  });
+  assert.deepEqual(result, { delivered: true, dryRun: true, id: 'ntfy' });
 });
