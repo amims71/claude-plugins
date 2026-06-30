@@ -5,13 +5,27 @@ Push Claude Code updates to your phone via [ntfy](https://ntfy.sh) — and make 
 Claude actually said at the end of the turn: the PR link, the decision it needs from
 you, or the error it hit.
 
-## What you get
+## Channels
 
-| Event | Push |
-| --- | --- |
-| **Stop** (turn ends) | Claude's closing message, de-marked-down. Title/priority adapt: ends in a question → `… — needs you` (❓, high); mentions an error → `… — error` (⚠, high); otherwise a plain completion. `https://` links stay tappable. |
-| **Notification** | Permission prompts and "needs attention" messages (🔔, high). |
-| **SessionStart** | First run only: mints your private topic and shows subscribe steps. Silent afterwards. |
+claude-ntfy sends to **one** channel, chosen per machine:
+
+| Channel | Status | How to configure |
+| --- | --- | --- |
+| ntfy | default | Auto-mints a private topic on first run (or set `NTFY_TOPIC`). |
+| Slack | ✓ | Incoming Webhook URL → `/claude-ntfy setup` or `SLACK_WEBHOOK_URL`. |
+| Discord | ✓ | Channel webhook URL → `/claude-ntfy setup` or `DISCORD_WEBHOOK_URL`. |
+| webhook | ✓ | Any JSON endpoint → `/claude-ntfy setup` or `WEBHOOK_URL`. |
+| Teams | planned | Use the generic webhook for now. |
+
+## Setup
+
+Run `/claude-ntfy setup` and follow the prompts, or configure manually:
+
+    node "$CLAUDE_PLUGIN_ROOT/bin/notify.mjs" --set provider=slack slack.webhook=https://hooks.slack.com/...
+    node "$CLAUDE_PLUGIN_ROOT/bin/notify.mjs" --test     # send a sample of each kind
+
+Active channel resolves as: `CLAUDE_NOTIFY_PROVIDER` env → `provider` in config.json → ntfy.
+`NOTIFY_DRY_RUN=1` prints the payload instead of sending. All `NTFY_*` vars still work.
 
 ## Install
 
@@ -32,16 +46,13 @@ subscribe instructions. Then:
 The topic is saved to `~/.claude/ntfy-notify/config.json` — never committed, and it
 survives `/plugin update`.
 
-## Configuration (all optional)
+## What you get
 
-Set these in `~/.claude/settings.json` under `"env"`, or in your shell:
-
-| Var | Default | Purpose |
-| --- | --- | --- |
-| `NTFY_TOPIC` | *(auto-generated)* | Use a specific topic. Set this to an existing topic (e.g. one your `notify-me` CLI already uses) to unify everything on one subscription. When set, no topic is generated. |
-| `NTFY_SERVER` | `https://ntfy.sh` | Self-hosted ntfy server. |
-| `NTFY_TITLE_PREFIX` | `Claude Code` | Leading text in every push title. |
-| `NTFY_DRY_RUN` | *(off)* | Print the payload to stderr instead of sending — handy for testing a hook locally. |
+| Event | Push |
+| --- | --- |
+| **Stop** (turn ends) | Claude's closing message, de-marked-down. Title/priority adapt: ends in a question → `… — needs you` (❓, high); mentions an error → `… — error` (⚠, high); otherwise a plain completion. `https://` links stay tappable. |
+| **Notification** | Permission prompts and "needs attention" messages (🔔, high). |
+| **SessionStart** | First run only: mints your private topic and shows subscribe steps. Silent afterwards. |
 
 ## Requirements
 
