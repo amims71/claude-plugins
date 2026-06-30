@@ -1,8 +1,9 @@
 import * as ntfy from './ntfy.mjs';
 import * as slack from './slack.mjs';
 import * as discord from './discord.mjs';
+import * as webhook from './webhook.mjs';
 
-export const providers = { ntfy, slack, discord };
+export const providers = { ntfy, slack, discord, webhook };
 
 function redact(cfg) {
   const r = { ...cfg };
