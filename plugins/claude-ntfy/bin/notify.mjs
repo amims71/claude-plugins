@@ -168,5 +168,9 @@ function readStdin() {
 function parseJSON(s) { try { return JSON.parse(s); } catch { return null; } }
 function safeRead(p) { try { return readFileSync(p, 'utf8'); } catch { return ''; } }
 function emit(obj) { process.stdout.write(JSON.stringify(obj)); }
-// ntfy Title is an HTTP header — strip newlines and anything outside printable latin1.
-function headerSafe(s) { return String(s).replace(/[\r\n]+/g, ' ').replace(/[^\x20-\xFF]/g, '').trim() || TITLE_PREFIX; }
+// ntfy Title is an HTTP header. Strip newlines, then re-emit UTF-8 as latin1 so Node's
+// latin1 header serialization sends real UTF-8 bytes (ntfy decodes Title as UTF-8).
+function headerSafe(s) {
+  const t = String(s).replace(/[\r\n]+/g, ' ').trim() || TITLE_PREFIX;
+  return Buffer.from(t, 'utf8').toString('latin1');
+}
