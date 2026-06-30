@@ -72,7 +72,35 @@ async function onNotification(input) {
 }
 
 async function cli(argv) {
-  // Implemented in Task 7.
+  const env = process.env;
+  const cmd = argv[0];
+  if (cmd === '--set') {
+    const updates = {};
+    for (const pair of argv.slice(1)) {
+      const i = pair.indexOf('=');
+      if (i > 0) updates[pair.slice(0, i)] = pair.slice(i + 1);
+    }
+    setKeys(updates);
+    process.stdout.write(`Saved to ${CONFIG_FILE}\n`);
+    return;
+  }
+  if (cmd === '--show') {
+    const cfg = loadConfig();
+    process.stdout.write(`provider: ${resolveProviderId(cfg, env)}\nconfig: ${CONFIG_FILE}\n`);
+    return;
+  }
+  if (cmd === '--test') {
+    const cfg = loadConfig();
+    const providerId = resolveProviderId(cfg, env);
+    const kinds = argv[1] ? [argv[1]] : Object.values(KIND);
+    for (const kind of kinds) {
+      const message = { title: `${TITLE_PREFIX} · test`, body: `claude-ntfy test — ${kind}`, kind, project: 'test' };
+      const r = await deliver({ providerId, cfg, env, message });
+      const status = r.delivered ? (r.dryRun ? 'dry-run' : 'sent') : `NOT configured (${providerId})`;
+      process.stdout.write(`${kind}: ${status}\n`);
+    }
+    return;
+  }
   process.stderr.write('usage: notify.mjs [--set k=v ...] [--test [kind]] [--show]\n');
 }
 
