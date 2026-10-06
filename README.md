@@ -54,4 +54,5 @@ claude-plugins/
 }
 ```
 
-4. Bump `version` in the plugin manifest, commit, push. Users re-sync with `/plugin marketplace update amim`.
+4. Add the plugin to the table above and to the landing page, `docs/index.html` (see [AGENTS.md](./AGENTS.md) for every spot to check).
+5. Bump `version` in the plugin manifest, commit, push. Users re-sync with `/plugin marketplace update amim`.

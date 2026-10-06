@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>amim — Claude Code plugins</title>
-<meta name="description" content="A personal Claude Code plugin marketplace. Small plugins that hook into the session lifecycle and fire only when it matters — keep your diffs free of comment noise, and turn phone pushes into something worth reading.">
+<meta name="description" content="A personal Claude Code plugin marketplace. Small plugins that hook into the session lifecycle and fire only when it matters — keep your diffs free of comment noise, turn phone pushes into something worth reading, and ask before any agent spends usage credits.">
 <meta name="theme-color" content="#0b1513">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="mask-icon" href="favicon.svg" color="#f4b740">
@@ -447,7 +447,7 @@
       <div class="hero-copy">
         <span class="eyebrow">amim · claude code plugins</span>
         <h1>Plugins that fire at the <span class="fire">right moment</span>.</h1>
-        <p class="lede">A personal Claude&nbsp;Code marketplace. Two plugins so far — each one a hook on the session lifecycle that does its job and stays quiet otherwise. Add it once with <code>@amim</code>.</p>
+        <p class="lede">A personal Claude&nbsp;Code marketplace. Three plugins so far — each one a hook on the session lifecycle that does its job and stays quiet otherwise. Add it once with <code>@amim</code>.</p>
         <div class="cta">
           <button class="btn btn-primary" data-copy="/plugin marketplace add amims71/claude-plugins" aria-label="Copy: add the amim marketplace">
             <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -456,26 +456,27 @@
           <a class="btn" href="#plugins">Browse plugins</a>
         </div>
         <div class="facts">
-          <span><b>2</b>&nbsp;plugins</span>
-          <span><b>0</b>&nbsp;dependencies</span>
-          <span>Node-only, cross-platform</span>
+          <span><b>3</b>&nbsp;plugins</span>
+          <span>No npm install</span>
           <span>MIT</span>
         </div>
       </div>
 
-      <div class="term reveal" role="img" aria-label="Terminal: adding the amim marketplace and installing both plugins.">
+      <div class="term reveal" role="img" aria-label="Terminal: adding the amim marketplace and installing the plugins.">
         <div class="term-bar">
           <i class="d1"></i><i class="d2"></i><i class="d3"></i>
           <span>claude code — ~/your-project</span>
         </div>
         <div class="term-body" id="term">
           <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin marketplace add amims71/claude-plugins</span></p>
-          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">added marketplace ‘amim’ — 2 plugins available</span></p>
+          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">added marketplace ‘amim’ — 3 plugins available</span></p>
           <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin install comment-rule@amim</span></p>
           <p class="tl out ok"><span class="gl">✓</span> <span class="ln">comment-rule 0.1.0 — UserPromptSubmit hook registered</span></p>
           <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin install claude-ntfy@amim</span></p>
-          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">claude-ntfy 0.1.2 — Stop · Notification · SessionStart</span></p>
+          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">claude-ntfy 0.2.0 — Stop · Notification · SessionStart</span></p>
           <p class="tl out dim"><span class="gl">◦</span> <span class="ln">minted a private ntfy topic — subscribe on your phone ↗</span></p>
+          <p class="tl cmd"><span class="pr">$</span> <span class="ln">/plugin install credit-gate@amim</span></p>
+          <p class="tl out ok"><span class="gl">✓</span> <span class="ln">credit-gate 0.1.0 — PreToolUse · UserPromptSubmit · SessionStart</span></p>
         </div>
       </div>
     </div>
@@ -487,7 +488,7 @@
     <div class="wrap">
       <div class="sec-head reveal">
         <span class="eyebrow">the session wire</span>
-        <h2>One Claude Code session. Four events. Two plugins listening.</h2>
+        <h2>One Claude Code session. Five events. Three plugins listening.</h2>
         <p>Every session is a stream of lifecycle events. A plugin is just a hook clamped onto one of them — it wakes when its event fires, does one thing, and goes quiet. Here’s the wire, and where each plugin taps in.</p>
       </div>
 
@@ -498,15 +499,22 @@
           <div class="ev fires">
             <span class="node"></span>
             <div class="ev-name">SessionStart <em>— a session begins</em></div>
-            <p class="ev-desc">First run only: claude-ntfy mints your private push topic and prints one-time subscribe steps. Silent on every session after.</p>
-            <div class="ev-by"><a class="by" href="#plugins">claude-ntfy</a></div>
+            <p class="ev-desc">claude-ntfy mints your private push topic on first run and prints one-time subscribe steps; credit-gate reminds you to run its setup until you have. Both are silent after that.</p>
+            <div class="ev-by"><a class="by" href="#plugins">claude-ntfy</a> <a class="by" href="#plugins">credit-gate</a></div>
           </div>
 
           <div class="ev fires">
             <span class="node"></span>
             <div class="ev-name">UserPromptSubmit <em>— you hit enter, every turn</em></div>
-            <p class="ev-desc">comment-rule re-injects one line — <span class="mono">Remember the code commenting rule.</span> — so the discipline survives turn 500 and post-compaction, not just turn 1.</p>
-            <div class="ev-by"><a class="by" href="#plugins">comment-rule</a></div>
+            <p class="ev-desc">comment-rule re-injects one line — <span class="mono">Remember the code commenting rule.</span> — so the discipline survives turn 500 and post-compaction, not just turn 1. Past your plan’s usage threshold, credit-gate holds the prompt until you allow usage credits.</p>
+            <div class="ev-by"><a class="by" href="#plugins">comment-rule</a> <a class="by" href="#plugins">credit-gate</a></div>
+          </div>
+
+          <div class="ev fires">
+            <span class="node"></span>
+            <div class="ev-name">PreToolUse <em>— any agent reaches for a tool</em></div>
+            <p class="ev-desc">Once your plan crosses 95% of its 5-hour window or 98% of the week, credit-gate pauses every session, subagent and workflow agent on one dialog: allow usage credits until the window resets, or stop.</p>
+            <div class="ev-by"><a class="by" href="#plugins">credit-gate</a></div>
           </div>
 
           <div class="ev">
@@ -533,8 +541,8 @@
     <div class="wrap">
       <div class="sec-head reveal">
         <span class="eyebrow">the catalog</span>
-        <h2>Two small plugins, no ceremony.</h2>
-        <p>Both are pure Node — no <span class="mono">npm install</span>, no <span class="mono">jq</span>, no bash, no execute bits. They run identically on macOS, Linux, and Windows, and uninstall without leaving anything behind in your settings.</p>
+        <h2>Three small plugins, no ceremony.</h2>
+        <p>No <span class="mono">npm install</span>, no daemons. comment-rule and claude-ntfy are pure Node and run identically on macOS, Linux, and Windows. credit-gate is a small bash hook for macOS that needs <span class="mono">jq</span>.</p>
       </div>
 
       <div class="cards">
@@ -565,7 +573,7 @@
         <article class="card reveal">
           <div class="card-top">
             <h3>claude-ntfy<span class="at"> @amim</span></h3>
-            <span class="ver">v0.1.2</span>
+            <span class="ver">v0.2.0</span>
           </div>
           <p class="tagline">Notifications worth reading — on your channel.</p>
           <p class="body">Not a static “your turn.” It sends Claude’s real closing message — de-markdowned, with the PR link or the question it’s waiting on. Titles and priority adapt to questions and errors. ntfy works out of the box — a private, unguessable topic, minted on first run — and Slack, Discord, or any webhook are one /claude-ntfy setup away.</p>
@@ -589,6 +597,32 @@
             <a class="docs" href="https://github.com/amims71/claude-plugins/tree/main/plugins/claude-ntfy" target="_blank" rel="noopener">Read the docs ↗</a>
           </div>
         </article>
+
+        <article class="card reveal">
+          <div class="card-top">
+            <h3>credit-gate<span class="at"> @amim</span></h3>
+            <span class="ver">v0.1.0</span>
+          </div>
+          <p class="tagline">Nothing spends usage credits until you say so.</p>
+          <p class="body">With usage credits on, Claude Code keeps going on credits once your plan runs out — without asking. credit-gate watches your plan usage, and past 95% of the 5-hour window or 98% of the week it pauses every session, subagent and workflow agent on one dialog. Allow credits until the window resets, or stop them all. Run /credit-gate:setup once after installing.</p>
+          <div class="hooks">
+            <span class="hook">PreToolUse</span>
+            <span class="hook">UserPromptSubmit</span>
+            <span class="hook">SessionStart</span>
+            <span class="hook">+ setup command</span>
+          </div>
+          <div class="grow"></div>
+          <div class="cmd">
+            <code><span class="pr">$</span> /plugin install credit-gate@amim</code>
+            <button class="copy" data-copy="/plugin install credit-gate@amim" aria-label="Copy install command for credit-gate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+          <div class="card-foot">
+            <span class="chip">workflow · macOS</span>
+            <a class="docs" href="https://github.com/amims71/claude-plugins/tree/main/plugins/credit-gate" target="_blank" rel="noopener">Read the docs ↗</a>
+          </div>
+        </article>
       </div>
     </div>
   </section>
@@ -600,7 +634,7 @@
       <div class="sec-head reveal">
         <span class="eyebrow">install</span>
         <h2>Add the marketplace once. Install anything from it.</h2>
-        <p>No token needed for public plugins — <span class="mono">gh</span> auth or a public-repo clone is enough. Hooks register automatically; there’s no <span class="mono">settings.json</span> to edit.</p>
+        <p>No token needed for public plugins — <span class="mono">gh</span> auth or a public-repo clone is enough. Hooks register automatically; there’s no <span class="mono">settings.json</span> to edit. The one exception: credit-gate needs <span class="mono">/credit-gate:setup</span> once, because a plugin can’t set your status line.</p>
       </div>
 
       <div class="steps">
@@ -617,7 +651,7 @@
 
         <div class="step reveal">
           <h4>Install a plugin</h4>
-          <p>Pull in either plugin by name, scoped to the <span class="mono">@amim</span> handle.</p>
+          <p>Pull in any plugin by name, scoped to the <span class="mono">@amim</span> handle.</p>
           <div class="cmd">
             <code><span class="pr">$</span> /plugin install claude-ntfy@amim</code>
             <button class="copy" data-copy="/plugin install claude-ntfy@amim" aria-label="Copy: install claude-ntfy">
@@ -656,6 +690,7 @@
           <li>Create <code>plugins/&lt;name&gt;/</code> with a <code>.claude-plugin/plugin.json</code> manifest.</li>
           <li>Add the <code>hooks/</code>, <code>skills/</code>, <code>commands/</code>, or <code>agents/</code> it needs.</li>
           <li>Append an entry to <code>.claude-plugin/marketplace.json</code>.</li>
+          <li>Add its card to this page, <code>docs/index.html</code>.</li>
           <li>Bump the version, commit, push. Done.</li>
         </ol>
 
