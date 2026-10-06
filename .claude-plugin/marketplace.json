@@ -18,6 +18,12 @@
       "description": "Push Claude Code completions to your phone via ntfy. The Stop hook sends what Claude actually said at turn-end (PR link / decision / error) instead of a static message; Notification events push permission/attention prompts. Auto-generates a private topic on first run with subscribe instructions. Cross-platform Node, no dependencies.",
       "source": "./plugins/claude-ntfy",
       "category": "workflow"
+    },
+    {
+      "name": "credit-gate",
+      "description": "Stops every Claude Code agent from spending usage credits until you say so. When your claude.ai plan crosses a usage threshold (5-hour 95%, weekly 98% by default), all sessions, subagents and workflow agents pause on one macOS dialog: Allow credits until the window resets, or Stop. One-time /credit-gate:setup connects it to your status line. macOS only; needs jq.",
+      "source": "./plugins/credit-gate",
+      "category": "workflow"
     }
   ]
 }
